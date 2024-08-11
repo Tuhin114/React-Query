@@ -1,15 +1,13 @@
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchPosts } from "./api/api";
+import PostList from "./components/PostList";
+import "./App.css";
 
 const App = () => {
-  const { data, isLoading, status } = useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
-  });
-
-  console.log(data, isLoading, status);
-  return <div>Hello</div>;
+  return (
+    <div>
+      <PostList />
+    </div>
+  );
 };
 
 export default App;
