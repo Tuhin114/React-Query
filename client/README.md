@@ -396,3 +396,55 @@ onSuccess: (data, variables, context) => {
 - **onSuccess:** Enhanced to log mutation results and invalidate specific queries in the cache based on custom logic.
 
 These changes add more robust handling around the mutation process, allowing for optimistic UI updates and fine-grained control over query invalidation.
+
+## Note - 5
+
+Let's focus on the newly added or modified parts of the code:
+
+### 1. **Introduction of the `reset` Method in `useMutation`**
+
+```javascript
+const {
+  mutate,
+  isError: isPostError,
+  isPending,
+  error: postError,
+  reset, 
+} = useMutation({
+  // Mutation configuration
+});
+```
+
+- **reset:** This method is provided by the `useMutation` hook. It allows you to reset the mutation state, typically used to clear error states or reset the `isLoading` and `isError` flags after a mutation attempt. This is particularly useful in cases where you want to give users the ability to retry an operation or clear an error message.
+
+### 2. **Usage of the `reset` Method in the Form**
+
+```javascript
+{isPostError && <h5 onClick={() => reset()}>Unable to Post</h5>}
+```
+
+- **Error Handling with `reset`:** In the form, if a post attempt fails (`isPostError` is true), an error message is displayed with a clickable `<h5>` element. When clicked, it triggers the `reset` function, which resets the mutation's state, effectively clearing the error and allowing the user to attempt the action again without the error persisting.
+
+### 3. **Commented Out Sections in `useMutation`**
+
+```javascript
+// predicate: (query) =>
+//   query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
+
+// onError: (error, variables, context) => {
+//   console.error(error, variables, context);
+// },
+
+// onSettled: (data, error, variables, context) => {},
+```
+
+- **Predicate (Commented Out):** This part, which was intended to filter and invalidate specific queries based on conditions, has been commented out. This suggests that for now, the code invalidates the entire `"posts"` query without the additional filtering.
+  
+- **onError (Commented Out):** This callback would handle errors that occur during the mutation, logging them or taking additional steps based on the context. It's commented out, meaning the current code does not explicitly handle mutation errors in this manner, potentially relying on the `reset` method instead.
+
+- **onSettled (Commented Out):** This callback runs after the mutation is either successfully completed or fails. It’s useful for clean-up tasks or final operations regardless of the mutation outcome. Since it's commented out, it indicates that such a final step isn’t currently needed.
+
+### Summary of Changes
+
+- **reset Method:** Introduced to allow resetting the mutation state after an error, providing users with a better experience by clearing errors and allowing retries.
+- **Commented Sections:** These include a predicate for query invalidation, error handling, and a final settlement callback, all of which are currently disabled, suggesting that the current focus is on basic mutation and query invalidation without complex error or state management.

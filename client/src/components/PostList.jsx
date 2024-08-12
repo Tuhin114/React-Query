@@ -25,6 +25,7 @@ const PostList = () => {
     isError: isPostError,
     isPending,
     error: postError,
+    reset,
   } = useMutation({
     mutationFn: addPost,
     onMutate: () => {
@@ -35,10 +36,14 @@ const PostList = () => {
       queryClient.invalidateQueries({
         queryKey: ["posts"],
         exact: true,
-        predicate: (query) =>
-          query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
+        // predicate: (query) =>
+        //   query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
       });
     },
+    // onError: (error, variables, context) => {
+    //   console.error(error, variables, context);
+    // },
+    // onSettled: (data, error, variables, context) => {},
   });
 
   const handleSubmit = (e) => {
