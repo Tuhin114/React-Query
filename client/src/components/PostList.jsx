@@ -1,5 +1,5 @@
 import React from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addPost, fetchPosts, fetchTags } from "../api/api";
 
 const PostList = () => {
@@ -18,6 +18,8 @@ const PostList = () => {
     queryFn: fetchTags,
   });
 
+  const queryClient = useQueryClient();
+
   const {
     mutate,
     isError: isPostError,
@@ -25,6 +27,18 @@ const PostList = () => {
     error: postError,
   } = useMutation({
     mutationFn: addPost,
+    onMutate: () => {
+      return { id: 1 };
+    },
+    onSuccess: (data, variables, context) => {
+      console.log(data, variables, context);
+      queryClient.invalidateQueries({
+        queryKey: ["posts"],
+        exact: true,
+        predicate: (query) =>
+          query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
+      });
+    },
   });
 
   const handleSubmit = (e) => {

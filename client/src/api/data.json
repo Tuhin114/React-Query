@@ -258,6 +258,22 @@
         "crime",
         "english"
       ]
+    },
+    {
+      "id": null,
+      "title": "New Post 1",
+      "tags": [
+        "english",
+        "fiction"
+      ]
+    },
+    {
+      "id": null,
+      "title": "New Post 2",
+      "tags": [
+        "history",
+        "love"
+      ]
     }
   ],
   "tags": [

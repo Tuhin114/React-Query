@@ -343,3 +343,56 @@ const handleSubmit = (e) => {
 - **UI Updates:** Added form elements for entering post titles and selecting tags, with dynamic tag rendering and form reset logic.
 
 These changes introduce the ability to create posts with associated tags and handle various states (e.g., posting, errors) while keeping the UI responsive and interactive.
+
+## Note - 4
+
+Let's compare the latest code with the previous version and focus on the newly added or updated parts.
+
+### 1. **Introduction of useQueryClient**
+
+```javascript
+const queryClient = useQueryClient();
+```
+
+- **useQueryClient:** This hook provides access to the `QueryClient`, allowing you to manually interact with the query cache. In this context, it's being used to invalidate queries after a successful mutation, ensuring the UI stays in sync with the latest data.
+
+### 2. **Enhancements to useMutation**
+
+The `useMutation` hook has been enhanced with the `onMutate` and `onSuccess` callbacks.
+
+#### onMutate
+
+```javascript
+onMutate: () => {
+  return { id: 1 };
+},
+```
+
+- **onMutate:** This callback is triggered before the mutation function (`addPost`) is executed. It allows you to optimistically update the UI or return a context object that can be used in later callbacks.
+- **Return Value:** Here, it returns an object with an `id` of `1`, which will be passed to the `onSuccess` callback as the `context`.
+
+#### onSuccess
+
+```javascript
+onSuccess: (data, variables, context) => {
+  console.log(data, variables, context);
+  queryClient.invalidateQueries({
+    queryKey: ["posts"],
+    exact: true,
+    predicate: (query) =>
+      query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
+  });
+},
+```
+
+- **onSuccess:** This callback is executed after the mutation succeeds. It provides access to the mutation's result (`data`), the variables used in the mutation (`variables`), and the context returned from `onMutate` (`context`).
+  - **Logging:** The `data`, `variables`, and `context` are logged to the console, which can be useful for debugging or monitoring the mutation's outcome.
+  - **invalidateQueries:** This method is used to invalidate specific queries in the cache. Here, it's configured to invalidate the `"posts"` query, but only if the query key's first element is `"posts"` and the second element's `page` property is `>= 2`. This ensures that the cache is updated only for the relevant queries.
+
+### Summary of Changes
+
+- **useQueryClient:** Introduced to manually interact with the query cache.
+- **onMutate:** Added to optimistically update the UI or prepare context data before the mutation is executed.
+- **onSuccess:** Enhanced to log mutation results and invalidate specific queries in the cache based on custom logic.
+
+These changes add more robust handling around the mutation process, allowing for optimistic UI updates and fine-grained control over query invalidation.
