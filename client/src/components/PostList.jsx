@@ -1,18 +1,25 @@
-import React from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { addPost, fetchPosts, fetchTags } from "../api/api";
 
 const PostList = () => {
+  const [page, setPage] = useState(1);
   const {
-    data: postData = [], // Default to an empty array
+    data: postData,
     isError,
     isLoading,
     error,
+    isPreviousData,
   } = useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
-    // gcTime: 0,
-    // refetchInterval: 1000 * 5,
+    queryKey: ["posts", page],
+    queryFn: () => fetchPosts(page),
+    staleTime: 1000 * 60 * 5,
+    keepPreviousData: true,
   });
 
   const { data: tagsData } = useQuery({
@@ -31,22 +38,9 @@ const PostList = () => {
     reset,
   } = useMutation({
     mutationFn: addPost,
-    onMutate: () => {
-      return { id: 1 };
+    onSuccess: () => {
+      queryClient.invalidateQueries(["posts"]);
     },
-    onSuccess: (data, variables, context) => {
-      console.log(data, variables, context);
-      queryClient.invalidateQueries({
-        queryKey: ["posts"],
-        exact: true,
-        // predicate: (query) =>
-        //   query.queryKey[0] === "posts" && query.queryKey[1].page >= 2,
-      });
-    },
-    // onError: (error, variables, context) => {
-    //   console.error(error, variables, context);
-    // },
-    // onSettled: (data, error, variables, context) => {},
   });
 
   const handleSubmit = (e) => {
@@ -59,7 +53,7 @@ const PostList = () => {
 
     if (!title || !tags) return;
 
-    mutate({ id: postData?.items + 1, title, tags });
+    mutate({ title, tags });
 
     e.target.reset(); // reset form
   };
@@ -90,18 +84,37 @@ const PostList = () => {
       </form>
       {isLoading && <p>Loading...</p>}
       {isError && <p>{error?.message}</p>}
-      {postData.length === 0 && !isLoading && !isError && (
+      {!postData?.data?.length && !isLoading && !isError && (
         <p>No posts available.</p>
       )}
-      {postData.map((post) => (
+      {postData?.data?.map((post) => (
         <div key={post.id} className="post">
           <div>{post.title}</div>
-
           {post.tags.map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
         </div>
       ))}
+      {/* Pagination */}
+      <div className="pages">
+        <button
+          onClick={() => setPage((old) => Math.max(old - 1, 1))}
+          disabled={page === 1}
+        >
+          Previous Page
+        </button>
+        <span>{page}</span>
+        <button
+          onClick={() => {
+            if (!isPreviousData && postData?.next) {
+              setPage((old) => old + 1);
+            }
+          }}
+          disabled={isPreviousData || !postData?.next}
+        >
+          Next Page
+        </button>
+      </div>
     </div>
   );
 };

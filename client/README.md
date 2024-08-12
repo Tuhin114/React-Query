@@ -450,6 +450,7 @@ const {
 - **Commented Sections:** These include a predicate for query invalidation, error handling, and a final settlement callback, all of which are currently disabled, suggesting that the current focus is on basic mutation and query invalidation without complex error or state management.
 
 ## Note - 6
+
 In this updated code, there are a few notable changes and additions that enhance the functionality and performance of the `PostList` component. Here's an explanation of the new or updated parts:
 
 ### 1. **Introduction of `gcTime` in the `posts` Query**
@@ -484,7 +485,7 @@ const { data: tagsData } = useQuery({
 
 - **staleTime:** The `staleTime` is set to `Infinity`, meaning that the fetched tags data will never be considered stale. This implies that the data won't be refetched once it is loaded unless explicitly invalidated. This is ideal for data that is either static or rarely changes, such as a predefined set of tags.
 
-### Summary of Changes:
+### Summary of Changes
 
 - **gcTime:** Configured for the `posts` query to prevent automatic garbage collection, keeping the data in cache indefinitely.
   
@@ -493,3 +494,73 @@ const { data: tagsData } = useQuery({
 - **staleTime:** Set to `Infinity` for the `tags` query, ensuring that the tags data is not refetched and remains fresh indefinitely unless manually invalidated.
 
 These changes optimize how frequently data is fetched and retained, balancing the need for fresh data with performance considerations, particularly by reducing unnecessary refetches for static or infrequently changing data.
+
+## Note - 7
+
+In this updated version of the code, the new additions focus primarily on implementing pagination for the list of posts. Here's a breakdown of the new or updated parts:
+
+### 1. **State for Pagination (`useState`):**
+
+   ```javascript
+   const [page, setPage] = useState(1);
+   ```
+
+- A new piece of state, `page`, is introduced to keep track of the current page number. The initial page is set to `1`.
+
+### 2. **Query Key with Page (`useQuery`):**
+
+   ```javascript
+   queryKey: ["posts", page],
+   queryFn: () => fetchPosts(page),
+   ```
+
+- The `queryKey` now includes the `page` number. This ensures that the query is unique for each page, allowing React Query to handle the data separately for different pages.
+- The `queryFn` is modified to pass the `page` as an argument to `fetchPosts`, enabling the fetching of posts specific to that page.
+
+### 3. **`keepPreviousData` Option:**
+
+   ```javascript
+   keepPreviousData: true,
+   ```
+
+- This option is set to `true` to prevent flickering and maintain the previous page’s data while the new page data is being fetched. This provides a smoother user experience during pagination transitions.
+
+### 4. **Pagination Controls:**
+
+   ```javascript
+   <div className="pages">
+     <button
+       onClick={() => setPage((old) => Math.max(old - 1, 1))}
+       disabled={page === 1}
+     >
+       Previous Page
+     </button>
+     <span>{page}</span>
+     <button
+       onClick={() => {
+         if (!isPreviousData && postData?.next) {
+           setPage((old) => old + 1);
+         }
+       }}
+       disabled={isPreviousData || !postData?.next}
+     >
+       Next Page
+     </button>
+   </div>
+   ```
+
+- **Previous Page Button:** Decreases the `page` state by 1, with a minimum value of `1`. The button is disabled on the first page.
+- **Next Page Button:** Increases the `page` state by 1 if the data is not from a previous fetch (`!isPreviousData`) and if there is a next page (`postData?.next`).
+- **Page Display:** The current page number is displayed between the buttons.
+
+### 5. **Handling `isPreviousData`:**
+
+   ```javascript
+   isPreviousData,
+   ```
+
+- `isPreviousData` is a boolean provided by React Query that indicates if the data being shown is from a previous fetch while the new data is being loaded. This is useful for disabling the "Next Page" button while awaiting fresh data for the new page.
+
+### Summary
+
+These changes effectively add pagination to the `PostList` component, allowing users to navigate through different pages of posts while ensuring a smooth data-loading experience. The `keepPreviousData` option is crucial for maintaining a consistent UI during pagination, and the state-driven page controls ensure that the correct data is fetched and displayed for each page.
