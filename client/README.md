@@ -213,3 +213,133 @@ export const fetchPosts = async () => {
    - If there are posts available, the component maps over `postData` and displays each post's title and tags.
 
 This component structure is typical in modern React applications where you need to handle various states (loading, error, success) efficiently and display dynamic content based on the fetched data.
+
+## Note - 3
+
+Let's compare the updated code with the previous version and explain the new or modified parts.
+
+### 1. **New API Function Imports**
+
+```javascript
+import { addPost, fetchPosts, fetchTags } from "../api/api";
+```
+
+- **addPost:** A new function added to handle the creation of a new post.
+- **fetchTags:** A new function added to fetch available tags from the API.
+
+### 2. **Fetching Tags Data with useQuery**
+
+```javascript
+const { data: tagsData } = useQuery({
+  queryKey: ["tags"],
+  queryFn: fetchTags,
+});
+```
+
+- This new `useQuery` hook is used to fetch tags data from the server.
+- **`queryKey`:** The unique identifier for the query is `["tags"]`.
+- **`queryFn`:** This calls the `fetchTags` function to retrieve the tags.
+
+### 3. **useMutation for Adding a Post**
+
+```javascript
+const {
+  mutate,
+  isError: isPostError,
+  isPending,
+  error: postError,
+} = useMutation({
+  mutationFn: addPost,
+});
+```
+
+- **useMutation:** This hook is used to perform a mutation, which in this case is adding a new post.
+- **`mutationFn`:** The function (`addPost`) that will be called to add a new post.
+- **`mutate`:** This function is used to trigger the mutation.
+- **`isError: isPostError`:** A boolean that indicates whether there was an error when trying to add a post.
+- **`isPending`:** A boolean that indicates whether the mutation is in progress.
+- **`error: postError`:** The error object returned if the mutation fails.
+
+### 4. **Form Handling with handleSubmit**
+
+```javascript
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const title = formData.get("title");
+  const tags = Array.from(formData.keys()).filter(
+    (key) => formData.get(key) === "on"
+  );
+
+  if (!title || !tags) return;
+
+  mutate({ id: postData?.items + 1, title, tags });
+
+  e.target.reset(); // reset form
+};
+```
+
+- **handleSubmit:** A new function to handle the form submission.
+  - **`e.preventDefault()`** prevents the default form submission behavior.
+  - **`new FormData(e.target)`** collects all form data.
+  - **title:** Extracts the value of the "title" input.
+  - **tags:** Filters the form data keys to collect the selected tags (those with a value of `"on"`).
+  - **mutate:** Triggers the `addPost` mutation with a new post object containing the `id`, `title`, and `tags`.
+  - **`e.target.reset()`** resets the form after submission.
+
+### 5. **Form UI and Submission Logic**
+
+```javascript
+<form onSubmit={handleSubmit}>
+  {isPostError && <h5 onClick={() => reset()}>Unable to Post</h5>}
+  <input
+    type="text"
+    placeholder="Enter your post.."
+    className="postbox"
+    name="title"
+  />
+  <div className="tags">
+    {tagsData?.map((tag) => {
+      return (
+        <div key={tag}>
+          <input name={tag} id={tag} type="checkbox" />
+          <label htmlFor={tag}>{tag}</label>
+        </div>
+      );
+    })}
+  </div>
+  <button disabled={isPending}>
+    {isPending ? "Posting..." : "Post"}
+  </button>
+</form>
+```
+
+- **Form Structure:** A new form is introduced for creating a new post.
+  - **Input Field:** An input field is used to enter the post title.
+  - **Tags Section:** Dynamically generates checkboxes for each tag fetched from `tagsData`.
+  - **Error Handling:** If there's an error in posting, an error message is displayed.
+  - **Button:** The submit button is disabled while the post is being added (`isPending`).
+
+### 6. **Post List Display (Updated Only)**
+
+```javascript
+{postData.map((post) => (
+  <div key={post.id} className="post">
+    <div>{post.title}</div>
+    {post.tags.map((tag) => (
+      <span key={tag}>{tag}</span>
+    ))}
+  </div>
+))}
+```
+
+- **Post Tags:** The tags for each post are now displayed as `<span>` elements within each post.
+
+### Summary of Changes
+
+- **API Functions:** Added `addPost` and `fetchTags` for handling post creation and fetching tags.
+- **Tag Fetching:** Introduced `useQuery` for fetching tags.
+- **Post Creation:** Added form handling logic with `useMutation` for adding a new post, including handling the form submission, collecting tags, and managing form state.
+- **UI Updates:** Added form elements for entering post titles and selecting tags, with dynamic tag rendering and form reset logic.
+
+These changes introduce the ability to create posts with associated tags and handle various states (e.g., posting, errors) while keeping the UI responsive and interactive.

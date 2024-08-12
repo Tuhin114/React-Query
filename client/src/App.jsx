@@ -5,6 +5,7 @@ import "./App.css";
 const App = () => {
   return (
     <div>
+      <h2 className="title">My Posts</h2>
       <PostList />
     </div>
   );
