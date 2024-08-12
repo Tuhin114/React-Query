@@ -11,11 +11,14 @@ const PostList = () => {
   } = useQuery({
     queryKey: ["posts"],
     queryFn: fetchPosts,
+    // gcTime: 0,
+    // refetchInterval: 1000 * 5,
   });
 
   const { data: tagsData } = useQuery({
     queryKey: ["tags"],
     queryFn: fetchTags,
+    staleTime: Infinity,
   });
 
   const queryClient = useQueryClient();

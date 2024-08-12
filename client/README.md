@@ -448,3 +448,48 @@ const {
 
 - **reset Method:** Introduced to allow resetting the mutation state after an error, providing users with a better experience by clearing errors and allowing retries.
 - **Commented Sections:** These include a predicate for query invalidation, error handling, and a final settlement callback, all of which are currently disabled, suggesting that the current focus is on basic mutation and query invalidation without complex error or state management.
+
+## Note - 6
+In this updated code, there are a few notable changes and additions that enhance the functionality and performance of the `PostList` component. Here's an explanation of the new or updated parts:
+
+### 1. **Introduction of `gcTime` in the `posts` Query**
+
+```javascript
+const {
+  data: postData = [],
+  isError,
+  isLoading,
+  error,
+} = useQuery({
+  queryKey: ["posts"],
+  queryFn: fetchPosts,
+  gcTime: 0,
+  refetchInterval: 1000 * 5,
+});
+```
+
+- **gcTime (Garbage Collection Time):** The `gcTime` option is set to `0`, meaning the query's cached data will not be garbage collected automatically. This essentially keeps the data in the cache indefinitely unless manually removed or invalidated. This can be useful if you want to keep the data accessible without needing to re-fetch it, especially if the data is expected to be reused frequently.
+
+- **refetchInterval:** This option is set to `1000 * 5` (5 seconds), meaning the `fetchPosts` query will automatically refetch the data every 5 seconds. This is useful in scenarios where the data is expected to change frequently and you want to keep the UI in sync with the latest data without requiring a manual refresh.
+
+### 2. **Introduction of `staleTime` in the `tags` Query**
+
+```javascript
+const { data: tagsData } = useQuery({
+  queryKey: ["tags"],
+  queryFn: fetchTags,
+  staleTime: Infinity,
+});
+```
+
+- **staleTime:** The `staleTime` is set to `Infinity`, meaning that the fetched tags data will never be considered stale. This implies that the data won't be refetched once it is loaded unless explicitly invalidated. This is ideal for data that is either static or rarely changes, such as a predefined set of tags.
+
+### Summary of Changes:
+
+- **gcTime:** Configured for the `posts` query to prevent automatic garbage collection, keeping the data in cache indefinitely.
+  
+- **refetchInterval:** Added to the `posts` query to enable automatic data refetching every 5 seconds, ensuring the UI displays the most up-to-date information.
+  
+- **staleTime:** Set to `Infinity` for the `tags` query, ensuring that the tags data is not refetched and remains fresh indefinitely unless manually invalidated.
+
+These changes optimize how frequently data is fetched and retained, balancing the need for fresh data with performance considerations, particularly by reducing unnecessary refetches for static or infrequently changing data.
